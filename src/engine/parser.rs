@@ -51,3 +51,16 @@ impl Display for ParseError {
 }
 
 impl Error for ParseError {}
+
+/// 特殊文字のエスケープ
+/// pos: 現在の文字の位置
+/// c: エスケープする特殊文字
+fn parse_escape(pos: usize, c: char) -> Result<AST, ParseError> {
+    match c {
+        '\\' | '(' | ')' | '|' | '+' | '*' | '?' => Ok(AST::Char(c)),
+        _ => {
+            let err = ParseError::InvalidEscape(pos, c);
+            Err(err)
+        }
+    }
+}
