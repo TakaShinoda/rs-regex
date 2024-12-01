@@ -96,3 +96,20 @@ fn parse_plus_star_question(
         Err(ParseError::NoPrev(pos))
     }
 }
+
+/// Or で結合された複数の式を AST に変換
+///
+/// 例: abc|def|ghi は、 AST::Or("abc", AST::Or("def" , "ghi")) という AST となる
+fn fold_or(mut seq_or: Vec<AST>) -> Option<AST> {
+    if seq_or.len() > 1 {
+        let mut ast = seq_or.pop().unwrap();
+        seq_or.reverse(); // AST::Or 先頭の式をASTのルートするため、並びを反転させる
+        for s in seq_or {
+            ast = AST::Or(Box::new(s), Box::new(ast));
+        }
+        Some(ast)
+    } else {
+        seq_or.pop() // seq_or 中の唯一の要素を返す
+    }
+}
+
