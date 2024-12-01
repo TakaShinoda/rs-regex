@@ -82,6 +82,7 @@ fn parse_plus_star_question(
     ast_type: PSQ,      // 限量子の種類
     pos: usize,         // 限量子の出現する位置
 ) -> Result<(), ParseError> {
+    // pop: seq の最後尾から要素を削除し返す
     if let Some(prev) = seq.pop() {
         let ast = match ast_type {
             PSQ::Plus => AST::Plus(Box::new(prev)),
