@@ -64,3 +64,34 @@ fn parse_escape(pos: usize, c: char) -> Result<AST, ParseError> {
         }
     }
 }
+
+/// parse_plus_star_question 関数で利用するための列挙型
+enum PSQ {
+    Plus,
+    Star,
+    Question,
+}
+
+/// +, *, ? を AST に変換
+///
+/// 後置記法で、+, *, ? の前にパターンがない場合はエラー
+///
+/// 例 : *ab, abc|+ などはエラー
+fn parse_plus_star_question(
+    seq: &mut Vec<AST>, // (abc)+ の時、abc が入る
+    ast_type: PSQ,      // 限量子の種類
+    pos: usize,         // 限量子の出現する位置
+) -> Result<(), ParseError> {
+    if let Some(prev) = seq.pop() {
+        let ast = match ast_type {
+            PSQ::Plus => AST::Plus(Box::new(prev)),
+            PSQ::Star => AST::Star(Box::new(prev)),
+            PSQ::Question => AST::Question(Box::new(prev)),
+        };
+        seq.push(ast);
+        Ok(());
+    } else {
+        // 限量子前に限量するパターンが現れないような用い方の時
+        Err(ParseError::NoPrev(pos))
+    }
+}
