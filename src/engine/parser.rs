@@ -16,7 +16,7 @@ pub enum AST {
     Star(Box<AST>),
     Question(Box<AST>),
     Or(Box<AST>, Box<AST>),
-    Seq(Vec<AST>), // 正規表現の列を表現する
+    Seq(Vec<AST>), // 正規表現の列を表現する (sequence)
 }
 
 /// パースエラーを表すための型
@@ -114,8 +114,10 @@ fn fold_or(mut seq_or: Vec<AST>) -> Option<AST> {
 }
 
 /// 正規表現を正規表現を抽象構文木に変換
+/// 引数として受け取った正規表現文字列から1文字ずつ文字を取り出し、それに該当する AST を生成する
 pub fn parse(expr: &str) -> Result<AST, ParseError> {
     // 内部状態を表現するための型
+    // 関数内で型を定義することで、この関数内でのみ用いる
     // Char: 文字列処理中
     // Escape: エスケープシーケンス処理中
     enum ParseState {
@@ -125,9 +127,12 @@ pub fn parse(expr: &str) -> Result<AST, ParseError> {
 
     let mut seq = Vec::new(); // 現在の Seq のコンテキスト
     let mut seq_or = Vec::new(); // 現在の Or のコンテキスト
-    let mut stack = Vec::new(); // コンテキストのスタック
+    let mut stack = Vec::new(); // コンテキストのスタック、コンテキストの保存と復元を行う
     let mut state = ParseState::Char; // 現在の状態
 
+    // chars で各文字のイテレータを取得
+    // enumerate で繰り返し番号とイテレータのペアが返る
+    // 番号はエラー時に、エラーが起きた場所を把握するために使う
     for (i, c) in expr.chars().enumerate() {
         match &state {
             ParseState::Char => {
@@ -196,7 +201,7 @@ pub fn parse(expr: &str) -> Result<AST, ParseError> {
     }
 
     // Or を生成し、成功した場合はそれを返す
-    if let Some(ast) = fold_or {
+    if let Some(ast) = fold_or(seq_or) {
         Ok(ast)
     } else {
         Err(Box::new(ParseError::Empty))
