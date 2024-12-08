@@ -2,6 +2,7 @@ pub trait SafeAdd: Sized {
     fn safe_add(&self, n: &Self) -> Option<Self>;
 }
 
+// usize 型に SafeAdd トレイトを実装
 impl SafeAdd for usize {
     fn safe_add(&self, n: &Self) -> Option<Self> {
         self.checked_add(*n)
